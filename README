@@ -1,8 +1,0 @@
-# DockerJupyterDevelop" 
-
-# 1 adjust Dockerfile to your needs
-    add packages which you want to have installed
-# 2 build docker images using 
-    docker build -t devcontainer:v1.1 .
-# open folder using visual studio code 
-    acept everything

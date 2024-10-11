@@ -1,33 +1,24 @@
-#!/opt/anaconda3/bin/python3
 
-import datetime
 import time
-import price_simulation 
+import pricing_simulation as ps
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import seaborn as sns
 
+# Define and run the simulation
 def main():
-    # Define parameters
-    k = 100  # Number of Brownian motion paths
-    steps = 5487  # Number of steps per path
-    
-    # Generate the Brownian motion paths and get the elapsed time
-    start_time = time.time()
-    paths = price_simulation.generate_brownian_motions(k, steps)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    print(f"elapsed time linear : {elapsed_time}")
-    start_time = time.time()
-    paths = price_simulation.generate_brownian_motions_parallel(k, steps)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    print(f"elapsed time parallel : {elapsed_time}")
+    S0 = 100
+    steps = 5487
+    k_values = [10,100, 500]
 
-    # Create an output path with the current date
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    output_path = f'output/result_{k}_{steps}_{date_str}.png'
-    
-    # Plot and save the result
-    price_simulation.plot_combined_brownian_distribution(paths, k, steps, elapsed_time, output_path)
-    print(f"Plot saved to {output_path}")
+    output_dir_brownian= 'output/brownian'
+    output_dir_geometrical_brownian = 'output/geometric_brownian'
+    output_dir_trinomial_tree_brownian = 'output/trinonmial_tree'
+
+    ps.anciliary.run_simulation_for_ks(ps.models.brownian_motion, S0, steps, k_values, output_dir_brownian)
+    ps.anciliary.run_simulation_for_ks(ps.models.geometric_brownian_motion, S0, steps, k_values, output_dir_geometrical_brownian)
+    ps.anciliary.run_simulation_for_ks(ps.models.brownian_motion_with_mean_reversion, S0, steps, k_values, output_dir_trinomial_tree_brownian)
 
 if __name__ == "__main__":
     main()
