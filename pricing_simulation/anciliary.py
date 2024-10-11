@@ -44,13 +44,26 @@ def calculate_sem_values(paths, k):
     """
     return [np.std(paths[:i, -1]) / np.sqrt(i) for i in range(1, k)]
 
-# Wrapper function to generate and collect k Brownian motions in parallel
-def generate_brownian_motions(func, k: int, steps: int, desc: str = "Generating motions"):
+# anciliary.py
+def generate_brownian_motions(func, k: int, steps: int, params, desc: str = "Generating motions"):
+    """
+    Generates Brownian motion paths using the specified function.
+    
+    Parameters:
+        func (callable): The function to generate the paths (e.g., brownian_motion).
+        k (int): The number of paths to generate.
+        steps (int): The number of time steps for each path.
+        params (dict): Dictionary containing model parameters to be passed to the function.
+        desc (str): Description for the tqdm progress bar.
+        
+    Returns:
+        np.ndarray: A NumPy array containing the generated paths.
+    """
     arrays = [np.zeros(steps) for _ in range(k)]
     results = []
 
     with tqdm(total=k, desc=desc) as pbar, ProcessPoolExecutor() as executor:
-        futures = [executor.submit(func, array) for array in arrays]
+        futures = [executor.submit(func, array, params) for array in arrays]
         for future in as_completed(futures):
             results.append(future.result())
             pbar.update(1)
@@ -200,7 +213,7 @@ def plot_convergence_statistics(convergence_stats, cumulative_means_list, cumula
     print(f"Convergence statistics plot saved to {output_path}")
 
 # Main function to run the simulations
-def run_simulation_for_ks(solver: int, S0, steps, k_values, output_dir):
+def run_simulation_for_ks(solver: int, S0, steps, k_values, output_dir,params):
     convergence_stats = {
         'k_values': [],
         'mean_terminal_values': [],
@@ -214,7 +227,7 @@ def run_simulation_for_ks(solver: int, S0, steps, k_values, output_dir):
 
     for k in k_values:
         start_time = time.time()
-        paths = generate_brownian_motions(solver, k, steps)
+        paths = generate_brownian_motions(solver, k, steps,params)
         elapsed_time = time.time() - start_time
 
         mean_terminal_value = calculate_mean_terminal_value(paths)
