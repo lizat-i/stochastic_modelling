@@ -1,105 +1,112 @@
 import numpy as np
     
-def brownian_motion_with_mean_reversion(array: np.array,params):
+def gbm_mean_reversion(array, params):
     """
-    Extension of the simple geometric brownian motion, to include the mean reversion property observed in energy markets.
-    Schwartz97.
+    Simulates a path of a mean-reverting process, commonly used for modeling energy prices.
+    
+    This model assumes that the asset price tends to revert to a long-term level (Ŝ) at a rate defined by α, 
+    the mean reversion speed. The mean reversion property is suitable for modeling commodities 
+    like energy where prices exhibit long-term stability.
 
-    Equuation dS = alpha(mu - In S)Sdt +sigma Sdz
-
-    int this model spot prices mean reverts to the long term level S_hat = exp(mu) with a speed given by the mean reversion rate alphs
-    the mean reversion rate can and is being derived by historical data.
-
-    Parameters:
-    - mu: Drift coefficient, representing the average expected return of the asset.
-    - sigma: Volatility of the asset, representing the randomness in price changes.
-    - dS incremental change in asset price
-    - S_hat  long term mean Spot price level 
-    - alpha is the mean reversion rate, which describes the speed at which the spot price reverts to its long term average level
-    - T: Total time duration (e.g., in years).
-    
-    Returns:
-    - np.array: The input array filled with simulated asset prices over time.
-    """
-    drift = params["drift"]
-    volatility = params["volatility"]
-    time_horizon = params["time_horizon"]
-    initial_value = params["initial_value"]
-    
-    dt = time_horizon / len(array)
-    drift      = 0.01 
-    volatility   = 0.3
-    T       = 5.0
-    # Number of steps derived from the length of the array
-    steps = len(array)
-    
-    # Calculate the time increment for each step
-    dt = T / steps
-    
-    # Set the initial value of the asset price
-    array[0] = initial_value  # You can change this to your desired starting price (e.g., S0)
-
-    # Generate the random shocks (Wiener process increments)
-    random_shocks = np.random.normal(0, 1, steps - 1)
-    
-    # Iterate through each time step to calculate the price using the GBM formula
-    for i in range(1, steps):
-        # Calculate the change in the price
-        dS = (drift - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * random_shocks[i - 1]
-        
-        # Update the price based on the previous price and the calculated change
-        array[i] = array[i - 1] * np.exp(dS)
-    
-    return array
-
-def brownian_motion(array, params):
-    """
-    Simulates a path of a standard Brownian motion.
+    Stochastic Differential Equation (SDE):
+        dS = α(Ŝ - ln(S))S dt + σS dW
     
     Parameters:
         array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
         params (dict): Dictionary containing model parameters such as:
-            - "drift" (float): The drift coefficient, representing the mean trend of the process.
-            - "volatility" (float): The volatility coefficient, determining the process's variability.
+            - "mean_reversion_speed" (float): The rate (α) at which prices revert to the long-term mean.
+            - "long_term_mean" (float): The long-term average price level (Ŝ).
+            - "volatility" (float): Volatility (σ) of the asset.
             - "time_horizon" (float): Total time span for the simulation.
-            - "initial_value" (float): The starting value of the process.
+            - "initial_value" (float): The starting value (S0) of the process.
     
     Returns:
-        np.ndarray: A simulated path of the Brownian motion.
+        np.ndarray: A simulated path of the mean-reverting process.
     
     Explanation:
-    - Uses the drift and volatility terms to generate changes in the value over time.
-    - The time horizon is divided into equal time steps, and each step contributes to the process's evolution.
+    - If the spot price is above the long-term mean, the drift becomes negative, causing the price to decrease.
+    - If the spot price is below the long-term mean, the drift becomes positive, causing the price to increase.
+    - The rate of reversion is controlled by the parameter α.
     """
-    drift = params["drift"]
+    mean_reversion_speed = params["mean_reversion_speed"]
+    long_term_mean = params["long_term_mean"]
     volatility = params["volatility"]
     time_horizon = params["time_horizon"]
     initial_value = params["initial_value"]
     
     dt = time_horizon / len(array)
+    array[0] = initial_value
     for t in range(1, len(array)):
-        array[t] = array[t-1] + drift * dt + volatility * np.sqrt(dt) * np.random.normal()
+        # Calculate the change using mean reversion
+        dS = mean_reversion_speed * (long_term_mean - np.log(array[t - 1])) * array[t - 1] * dt + volatility * array[t - 1] * np.sqrt(dt) * np.random.normal()
+        array[t] = array[t - 1] * np.exp(dS)
     
     return array
 
-def geometric_brownian_motion(array, params):
+def risk_neutral_gbm_with_dividends(array, params):
     """
-    Simulates a path of a geometric Brownian motion.
+    Simulates a path of a geometric Brownian motion under a risk-neutral measure with continuous dividend yield.
+    
+    This model is commonly used in the pricing of derivatives on assets that pay dividends. It adjusts the drift to account for the difference between the risk-free rate (r) and the continuous dividend yield (δ).
+
+    Stochastic Differential Equation (SDE):
+        dS = (r - δ)S dt + σS dW
+
+    Parameters:
+        array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
+        params (dict): Dictionary containing model parameters such as:
+            - "risk_free_rate" (float): The risk-free interest rate (r), representing the return on a riskless investment.
+            - "dividend_yield" (float): Continuous dividend yield (δ), representing the yield paid out by the asset.
+            - "volatility" (float): Volatility (σ) of the asset.
+            - "time_horizon" (float): Total time span for the simulation.
+            - "initial_value" (float): The starting value (S0) of the process.
+    
+    Returns:
+        np.ndarray: A simulated path of the risk-neutral geometric Brownian motion.
+    
+    Explanation:
+    - Adjusts the drift to reflect the difference between the risk-free rate and dividend yield.
+    - Useful for modeling assets like stocks that pay continuous dividends.
+    """
+    risk_free_rate = params["risk_free_rate"]
+    dividend_yield = params["dividend_yield"]
+    volatility = params["volatility"]
+    time_horizon = params["time_horizon"]
+    initial_value = params["initial_value"]
+    
+    dt = time_horizon / len(array)
+    array[0] = initial_value
+    for t in range(1, len(array)):
+        array[t] = array[t - 1] * np.exp((risk_free_rate - dividend_yield - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * np.random.normal())
+    
+    return array
+
+def gbm(array, params):
+    """
+    Simulates a path of a geometric Brownian motion (GBM).
+    
+    This model assumes that the proportional changes in the asset price follow a stochastic 
+    process characterized by a constant drift (μ) and volatility (σ). It is commonly used 
+    for modeling stock prices under the Black-Scholes-Merton framework.
+
+    Stochastic Differential Equation (SDE):
+        dS = μS dt + σS dW
     
     Parameters:
         array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
         params (dict): Dictionary containing model parameters such as:
-            - "drift" (float): The drift coefficient.
-            - "volatility" (float): Volatility affecting the magnitude of fluctuations.
-            - "time_horizon" (float): Time span of the simulation.
-            - "initial_value" (float): Starting point for the simulation.
+            - "drift" (float): The risk-neutral drift term, representing the expected return of the asset.
+            - "volatility" (float): Volatility (σ) of the asset, representing the randomness in price changes.
+            - "time_horizon" (float): Total time span for the simulation.
+            - "initial_value" (float): The starting value (S0) of the process.
     
     Returns:
         np.ndarray: A simulated path of the geometric Brownian motion.
     
     Explanation:
-    - Models stock prices or other financial instruments where changes are proportional to the current value.
-    - Evolves according to the stochastic differential equation: dS = μS dt + σS dW.
+    - This model assumes that asset prices have constant drift and volatility.
+    - The drift term represents the expected growth rate, while volatility represents 
+      the randomness in asset prices.
     """
     drift = params["drift"]
     volatility = params["volatility"]
@@ -109,6 +116,6 @@ def geometric_brownian_motion(array, params):
     dt = time_horizon / len(array)
     array[0] = initial_value
     for t in range(1, len(array)):
-        array[t] = array[t-1] * np.exp((drift - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * np.random.normal())
+        array[t] = array[t - 1] * np.exp((drift - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * np.random.normal())
     
     return array

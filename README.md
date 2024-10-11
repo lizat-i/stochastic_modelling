@@ -1,11 +1,15 @@
 # Brownian Motion and Pricing Simulations
 
-This project contains tools for simulating various types of stochastic processes like Brownian motion, geometric Brownian motion, and trinomial tree models, along with detailed statistical analysis.
+This project provides tools for simulating various types of stochastic processes used in financial modeling, such as standard Brownian motion, geometric Brownian motion with continuous dividend yield, and mean-reverting processes often seen in energy markets. The project also includes tools for detailed statistical analysis of simulated paths.
 
 ## Features
-- Simulate multiple paths of Brownian motion, geometric Brownian motion, and trinomial trees.
-- Calculate and visualize statistical metrics like mean, variance, and standard error.
-- Generate detailed convergence statistics for analysis.
+- Simulate multiple paths of financial processes, including:
+  - **Geometric Brownian Motion (GBM)**: Suitable for modeling stock prices, assuming a constant drift (expected return) and volatility.
+  - **Risk-Neutral GBM with Continuous Dividend Yield**: Extends the standard GBM to account for assets that pay a continuous dividend yield, adjusting the drift by the difference between the risk-free rate and the dividend yield.
+  - **Mean-Reverting Processes**: Simulates assets with a tendency to revert to a long-term mean, such as commodity prices (e.g., energy markets), using mean reversion dynamics.
+- Calculate and visualize important statistical metrics like mean, variance, and standard error for the simulated paths.
+- Generate detailed convergence statistics to analyze the behavior of the processes over time.
+- Includes both command-line and Jupyter Notebook interfaces for ease of use.
 
 ## Project Structure
 - **`main.py`**: Main script to run the simulations from the command line.

@@ -22,13 +22,13 @@ def main():
     steps = 5487
     k_values = [10,100, 500]
 
-    output_dir_brownian= 'output/brownian'
-    output_dir_geometrical_brownian = 'output/geometric_brownian'
-    output_dir_trinomial_tree_brownian = 'output/trinonmial_tree'
+    output_dir_brownian= 'output/gbm'
+    output_dir_geometrical_brownian = 'output/risk_neutral_gbm_with_dividends'
+    output_dir_trinomial_tree_brownian = 'output/risk_neutral_gbm_with_dividends'
 
-    ps.anciliary.run_simulation_for_ks(ps.models.brownian_motion, S0, steps, k_values, output_dir_brownian,model_params)
-    ps.anciliary.run_simulation_for_ks(ps.models.geometric_brownian_motion, S0, steps, k_values, output_dir_geometrical_brownian,model_params)
-    ps.anciliary.run_simulation_for_ks(ps.models.brownian_motion_with_mean_reversion, S0, steps, k_values, output_dir_trinomial_tree_brownian,model_params)
+    ps.anciliary.run_simulation_for_ks(ps.models.gbm, S0, steps, k_values, output_dir_brownian,model_params)
+    ps.anciliary.run_simulation_for_ks(ps.models.risk_neutral_gbm_with_dividends, S0, steps, k_values, output_dir_geometrical_brownian,model_params)
+    ps.anciliary.run_simulation_for_ks(ps.models.gbm_mean_reversion, S0, steps, k_values, output_dir_trinomial_tree_brownian,model_params)
 
 if __name__ == "__main__":
     main()
