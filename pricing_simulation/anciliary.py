@@ -213,7 +213,7 @@ def plot_convergence_statistics(convergence_stats, cumulative_means_list, cumula
     print(f"Convergence statistics plot saved to {output_path}")
 
 # Main function to run the simulations
-def run_simulation_for_ks(solver: int, S0, steps, k_values, output_dir,params):
+def run_simulation_for_ks(solver: int, steps, k_values, output_dir,params):
     convergence_stats = {
         'k_values': [],
         'mean_terminal_values': [],
@@ -243,7 +243,7 @@ def run_simulation_for_ks(solver: int, S0, steps, k_values, output_dir,params):
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
         output_path = os.path.join(output_dir, f'result_brownian_{k}_{steps}_{date_str}.png')
         cumulative_means, cumulative_variances, sem_values = plot_combined_brownian_distribution_statistics(
-            paths, k, steps, S0, elapsed_time, output_path)
+            paths, k, steps, params["initial_value"], elapsed_time, output_path)
         
         cumulative_means_list.append(cumulative_means)
         cumulative_variances_list.append(cumulative_variances)

@@ -4,21 +4,19 @@ def gbm_mean_reversion(array, params):
     """
     Simulates a path of a mean-reverting process, commonly used for modeling energy prices.
     
-    This model assumes that the asset price tends to revert to a long-term level (Ŝ) at a rate defined by α, 
-    the mean reversion speed. The mean reversion property is suitable for modeling commodities 
-    like energy where prices exhibit long-term stability.
+    This model assumes that the asset price tends to revert to a long-term level (Ŝ = exp(mu)) at a rate defined by alpha, the mean reversion speed. The mean reversion property is suitable for modeling commodities like energy where prices exhibit long-term stability.
 
     Stochastic Differential Equation (SDE):
-        dS = α(Ŝ - ln(S))S dt + σS dW
+
+        dS = alpha(ln(S_hat) - ln(S))S dt + sigma S dz
     
     Parameters:
-        array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
-        params (dict): Dictionary containing model parameters such as:
-            - "mean_reversion_speed" (float): The rate (α) at which prices revert to the long-term mean.
-            - "long_term_mean" (float): The long-term average price level (Ŝ).
-            - "volatility" (float): Volatility (σ) of the asset.
-            - "time_horizon" (float): Total time span for the simulation.
-            - "initial_value" (float): The starting value (S0) of the process.
+        - "mean_reversion_rate" (float): The rate (alpha) at which prices revert to the long-term mean.
+        - "S_hat" (float): long term average (mu).
+        - "volatility" (float): Volatility (sigma) of the asset.
+        - "time_horizon" (float): Total time span for the simulation.
+        - "initial_value" (float): The starting value (S0) of the process.
+        - dz is the underlying uncertainty driving the model and represents an increment in a Weiner process during dt.
     
     Returns:
         np.ndarray: A simulated path of the mean-reverting process.
@@ -26,20 +24,21 @@ def gbm_mean_reversion(array, params):
     Explanation:
     - If the spot price is above the long-term mean, the drift becomes negative, causing the price to decrease.
     - If the spot price is below the long-term mean, the drift becomes positive, causing the price to increase.
-    - The rate of reversion is controlled by the parameter α.
+    - The rate of reversion is controlled by the parameter alpha.
     """
-    mean_reversion_speed = params["mean_reversion_speed"]
-    long_term_mean = params["long_term_mean"]
+    mean_reversion_rate = params["mean_reversion_rate"]
+    S_hat = params["long_term_average"]
     volatility = params["volatility"]
     time_horizon = params["time_horizon"]
     initial_value = params["initial_value"]
     
+    print("")
     dt = time_horizon / len(array)
+
     array[0] = initial_value
+
     for t in range(1, len(array)):
-        # Calculate the change using mean reversion
-        dS = mean_reversion_speed * (long_term_mean - np.log(array[t - 1])) * array[t - 1] * dt + volatility * array[t - 1] * np.sqrt(dt) * np.random.normal()
-        array[t] = array[t - 1] * np.exp(dS)
+        array[t] = array[t - 1] * np.exp((mean_reversion_rate*(np.log(S_hat)-np.log(array[t - 1])) - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * np.random.normal())
     
     return array
 
@@ -50,14 +49,14 @@ def risk_neutral_gbm_with_dividends(array, params):
     This model is commonly used in the pricing of derivatives on assets that pay dividends. It adjusts the drift to account for the difference between the risk-free rate (r) and the continuous dividend yield (δ).
 
     Stochastic Differential Equation (SDE):
-        dS = (r - δ)S dt + σS dW
+        dS = (r - δ)S dt + sigmaS dW
 
     Parameters:
         array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
         params (dict): Dictionary containing model parameters such as:
             - "risk_free_rate" (float): The risk-free interest rate (r), representing the return on a riskless investment.
             - "dividend_yield" (float): Continuous dividend yield (δ), representing the yield paid out by the asset.
-            - "volatility" (float): Volatility (σ) of the asset.
+            - "volatility" (float): Volatility (sigma) of the asset.
             - "time_horizon" (float): Total time span for the simulation.
             - "initial_value" (float): The starting value (S0) of the process.
     
@@ -86,17 +85,17 @@ def gbm(array, params):
     Simulates a path of a geometric Brownian motion (GBM).
     
     This model assumes that the proportional changes in the asset price follow a stochastic 
-    process characterized by a constant drift (μ) and volatility (σ). It is commonly used 
+    process characterized by a constant drift (mu) and volatility (sigma). It is commonly used 
     for modeling stock prices under the Black-Scholes-Merton framework.
 
     Stochastic Differential Equation (SDE):
-        dS = μS dt + σS dW
+        dS = muS dt + sigmaS dW
     
     Parameters:
         array (np.ndarray): Array initialized with zeros, to be filled with the simulated path.
         params (dict): Dictionary containing model parameters such as:
             - "drift" (float): The risk-neutral drift term, representing the expected return of the asset.
-            - "volatility" (float): Volatility (σ) of the asset, representing the randomness in price changes.
+            - "volatility" (float): Volatility (sigma) of the asset, representing the randomness in price changes.
             - "time_horizon" (float): Total time span for the simulation.
             - "initial_value" (float): The starting value (S0) of the process.
     
